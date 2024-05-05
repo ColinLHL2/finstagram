@@ -27,7 +27,7 @@ input[type=text], input[type=password], input[type=email] {
 
 header {
   overflow: hidden;
-  /* display: flex; */
+  display: flex;
   align-items: baseline;
 }
 

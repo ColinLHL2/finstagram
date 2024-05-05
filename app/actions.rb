@@ -1,3 +1,10 @@
+helpers do
+  # returns a User object or nil
+  def current_user
+    User.find_by(id: session[:user_id])
+  end
+end
+
 # Controller
 
 # Specify our routes/actions
@@ -32,8 +39,65 @@ post '/signup' do
 
   # create a user record
   if @user.save
-    "Signed up username: #{@user.username}"
+    redirect to('/login')
   else
     erb(:signup)
+  end
+end
+
+# Handle the GET request for the path '/login'
+get '/login' do
+  erb(:login)
+end
+
+# Handle the POST request for the path '/login'
+post '/login' do
+  username = params[:username]
+  password = params[:password]
+
+  @user = User.find_by(username: username)
+
+  if @user && @user.password == password
+    session[:user_id] = @user.id
+    redirect to('/')
+  else
+    @error_message = "Login failed."
+    erb(:login)
+  end
+end
+
+# Handle the GET request for the path '/logout'
+get '/logout' do
+  session[:user_id] = nil
+  redirect to('/')
+end
+
+# Handle the GET request for the path '/finstagram_posts/new'
+get '/finstagram_posts/new' do
+  @finstagram_post = FinstagramPost.new
+  erb(:'finstagram_posts/new')
+end
+
+# Handle the GET request for the path '/finstagram_posts/:id'
+get '/finstagram_posts/:id' do
+  @finstagram_post = FinstagramPost.find(params[:id])
+  erb(:'finstagram_posts/show')
+end
+
+# Handle the POST request for the path '/finstagram_posts'
+post '/finstagram_posts' do
+  # handle form data from request body
+  photo_url = params[:photo_url]
+
+  # instantiate an object
+  @finstagram_post = FinstagramPost.new({
+    photo_url: photo_url,
+    user_id: current_user.id
+  })
+
+  if @finstagram_post.save
+    redirect to('/')
+  else
+    erb(:'finstagram_posts/new')
   end
 end
