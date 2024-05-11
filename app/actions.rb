@@ -3,6 +3,11 @@ helpers do
   def current_user
     User.find_by(id: session[:user_id])
   end
+
+  # returns a boolean
+  def logged_in?
+    !!current_user
+  end
 end
 
 # Controller
@@ -72,6 +77,11 @@ get '/logout' do
   redirect to('/')
 end
 
+# before block
+before '/finstagram_posts/new' do
+  redirect to('/login') unless logged_in?
+end
+
 # Handle the GET request for the path '/finstagram_posts/new'
 get '/finstagram_posts/new' do
   @finstagram_post = FinstagramPost.new
@@ -80,8 +90,13 @@ end
 
 # Handle the GET request for the path '/finstagram_posts/:id'
 get '/finstagram_posts/:id' do
-  @finstagram_post = FinstagramPost.find(params[:id])
-  erb(:'finstagram_posts/show')
+  @finstagram_post = FinstagramPost.find_by(id: params[:id])
+
+  if @finstagram_post
+    erb(:'finstagram_posts/show')
+  else
+    halt(404, erb(:'errors/404'))
+  end
 end
 
 # Handle the POST request for the path '/finstagram_posts'
@@ -100,4 +115,38 @@ post '/finstagram_posts' do
   else
     erb(:'finstagram_posts/new')
   end
+end
+
+# Handle the POST request for the path '/comments'
+post '/comments' do
+  # point values from params to variables
+  text = params[:text]
+  finstagram_post_id = params[:finstagram_post_id]
+
+  # instantiate a comment with those values & assign the comment to the `current_user`
+  comment = Comment.new({ text: text, finstagram_post_id: finstagram_post_id, user_id: current_user.id })
+
+  # save the comment
+  comment.save
+
+  # `redirect` back to wherever we came from
+  redirect(back)
+end
+
+# Handle the POST request for the path '/likes'
+post '/likes' do
+  finstagram_post_id = params[:finstagram_post_id]
+
+  like = Like.new({ finstagram_post_id: finstagram_post_id, user_id: current_user.id })
+        
+  like.save
+
+  redirect(back)
+end
+
+# Handle the DELETE request for the path '/likes/:id'
+delete '/likes/:id' do
+  like = Like.find(params[:id])
+  like.destroy
+  redirect(back)
 end
