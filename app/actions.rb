@@ -150,3 +150,12 @@ delete '/likes/:id' do
   like.destroy
   redirect(back)
 end
+
+# before block
+before '/profile' do
+  redirect to('/login') unless logged_in?
+end
+
+get '/profile' do
+  erb(:profile)
+end
