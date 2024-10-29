@@ -23,6 +23,12 @@ main {
   border-radius: 50%;
 }
 
+.finstagram-post .user-info p {
+ 
+  
+  
+}
+
 a.photo {
   transition: padding 0.5s;
 }
